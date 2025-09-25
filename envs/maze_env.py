@@ -59,6 +59,7 @@ class MazeKeyDoorEnv(gym.Env):
         self._clock: Optional["pygame.time.Clock"] = None
         self._canvas: Optional["pygame.Surface"] = None
         self._cell_size = 48
+        self._shaping_weight = 0.02  # guide exploration toward key/goal
 
     def _parse_layout(self) -> None:
         self.walls = set()
@@ -117,6 +118,9 @@ class MazeKeyDoorEnv(gym.Env):
         dx, dy = move_map[action]
         candidate = (self.agent_pos[0] + dx, self.agent_pos[1] + dy)
 
+        stage_has_key = self.has_key
+        potential_before = self._potential(self.agent_pos, stage_has_key)
+
         if not (0 <= candidate[0] < self.width and 0 <= candidate[1] < self.height):
             reward -= 0.25
         elif candidate in self.walls:
@@ -142,6 +146,9 @@ class MazeKeyDoorEnv(gym.Env):
 
         if self.step_count >= self.max_steps:
             truncated = True
+
+        potential_after = self._potential(self.agent_pos, stage_has_key)
+        reward += self._shaping_weight * (potential_after - potential_before)
 
         obs = self._get_obs()
         info = self._get_info()
@@ -239,3 +246,11 @@ class MazeKeyDoorEnv(gym.Env):
             pygame.quit()
             self._canvas = None
             self._clock = None
+
+    @staticmethod
+    def _manhattan(a: Tuple[int, int], b: Tuple[int, int]) -> int:
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+    def _potential(self, position: Tuple[int, int], has_key_flag: bool) -> float:
+        target = self.goal_pos if has_key_flag else self.key_pos
+        return -float(self._manhattan(position, target))
