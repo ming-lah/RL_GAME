@@ -1,0 +1,5 @@
+gymnasium>=0.29
+pygame>=2.5
+torch>=2.1
+matplotlib>=3.7
+numpy>=1.23
