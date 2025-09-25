@@ -2,6 +2,7 @@ import argparse
 import json
 import math
 import random
+import sys
 from dataclasses import asdict
 from pathlib import Path
 from typing import Dict, List
@@ -63,6 +64,22 @@ def main() -> None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     else:
         device = torch.device(args.device)
+
+    # Enforce CUDA availability if explicitly requested
+    if args.device == "cuda" and not torch.cuda.is_available():
+        sys.stderr.write("[Error] --device cuda specified but CUDA is not available.\n")
+        sys.exit(1)
+
+    # Informative device printout
+    if device.type == "cuda":
+        try:
+            dev_index = torch.cuda.current_device()
+            dev_name = torch.cuda.get_device_name(dev_index)
+            print(f"Using CUDA device {dev_index}: {dev_name}")
+        except Exception:
+            print("Using CUDA device")
+    else:
+        print("Using CPU device")
 
     env = MazeKeyDoorEnv()
     state_dim = env.observation_space.shape[0]
