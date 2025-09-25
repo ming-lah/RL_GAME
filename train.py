@@ -5,7 +5,7 @@ import random
 import sys
 from dataclasses import asdict
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
@@ -34,26 +34,32 @@ def set_global_seed(seed: int) -> None:
         torch.cuda.manual_seed_all(seed)
 
 
-def evaluate_policy(agent: DQNAgent, episodes: int = 5, max_steps: int = 250) -> float:
+def evaluate_policy(agent: DQNAgent, episodes: int = 5, max_steps: int = 250) -> Tuple[float, float]:
     eval_env = MazeKeyDoorEnv()
     agent.set_eval_mode()
     total = 0.0
+    successes = 0
     try:
-        for episode in range(episodes):
+        for _ in range(episodes):
             state, _ = eval_env.reset()
             episode_reward = 0.0
+            reached_goal = False
             for _ in range(max_steps):
                 action = agent.act(state, eval_mode=True)
                 next_state, reward, terminated, truncated, _ = eval_env.step(action)
                 episode_reward += reward
                 state = next_state
                 if terminated or truncated:
+                    if terminated:
+                        reached_goal = True
                     break
             total += episode_reward
+            if reached_goal:
+                successes += 1
     finally:
         eval_env.close()
         agent.set_train_mode()
-    return total / episodes
+    return total / episodes, successes / episodes
 
 
 def main() -> None:
@@ -137,9 +143,15 @@ def main() -> None:
             agent.save(checkpoint_path)
 
         if episode % args.eval_interval == 0:
-            eval_reward = evaluate_policy(agent, episodes=3, max_steps=args.max_steps)
-            history["eval"].append({"episode": episode, "reward": eval_reward})
-            print(f"[Eval] Episode {episode}: avg reward {eval_reward:.3f}")
+            eval_reward, eval_win_rate = evaluate_policy(agent, episodes=3, max_steps=args.max_steps)
+            history["eval"].append({
+                "episode": episode,
+                "reward": eval_reward,
+                "win_rate": eval_win_rate,
+            })
+            print(
+                f"[Eval] Episode {episode}: avg reward {eval_reward:.3f} | win rate {eval_win_rate:.2%}"
+            )
 
         if episode % 10 == 0 or episode == 1:
             recent_rewards = history["reward"][-10:]
