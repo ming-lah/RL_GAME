@@ -135,10 +135,10 @@ class MazeKeyDoorEnv(gym.Env):
                 reward += 0.3
 
             if self.agent_pos in self.traps:
-                reward -= 0.4
+                reward -= 0.35
 
             if self.agent_pos == self.door_pos and self.has_key:
-                reward += 0.05  # small bonus for unlocking the door
+                reward += 0.15  # rewarding successful door unlock
 
             if self.agent_pos == self.goal_pos:
                 terminated = True
@@ -147,7 +147,7 @@ class MazeKeyDoorEnv(gym.Env):
         if self.step_count >= self.max_steps:
             truncated = True
 
-        potential_after = self._potential(self.agent_pos, stage_has_key)
+        potential_after = self._potential(self.agent_pos, self.has_key)
         reward += self._shaping_weight * (potential_after - potential_before)
 
         obs = self._get_obs()
