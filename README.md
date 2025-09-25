@@ -1,6 +1,6 @@
 # Maze Explorer DQN
 
-A reinforcement learning project that trains a Deep Q-Network (DQN) agent to solve a top-down maze with a key-door mechanic, traps, and pygame-based visualisation. The maze is intentionally richer than classic control tasks (e.g. CartPole) and includes coloured tile rendering plus replay scripts for interactive demos.
+A reinforcement learning project that trains a Deep Q-Network (DQN) agent to solve a top-down maze with a key-door mechanic, traps, and pygame-based visualisation. The maze is intentionally richer than classic control tasks (e.g. CartPole_v2) and includes coloured tile rendering plus replay scripts for interactive demos.
 
 ## Highlights
 - Custom maze environment (`envs/maze_env.py`) with walls, traps, a collectible key, and a locked door guarding the goal.
@@ -23,9 +23,9 @@ project_rl/
 ```
 
 ## Setup
-1. Activate your Conda environment (example shown for the provided `transformer` env):
+1. Activate your Conda environment :
    ```bash
-   conda activate transformer
+   conda activate your_env
    ```
 2. Install required packages (PyTorch build can be skipped if already available with GPU support):
    ```bash
